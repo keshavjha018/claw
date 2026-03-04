@@ -23,6 +23,12 @@ pip install git+https://github.com/keshavjha018/claw.git
 
 This downloads compiling execution directly from GitHub and registers the `claw` executable directly in your system PATH.
 
+### Updating Claw
+When a new version is pushed to GitHub, users can update their local installation by simply adding the `--upgrade` flag to the install command:
+```bash
+pip install --upgrade git+https://github.com/keshavjha018/claw.git
+```
+
 
 ## Usage Guide
 
@@ -75,3 +81,9 @@ If you are modifying the source code of Claw locally, you can install it in "edi
    ```bash
    pip install -e .
    ```
+3. To build a standalone executable `.exe` file for distribution:
+   ```bash
+   pip install pyinstaller
+   pyinstaller --onefile claw.py
+   ```
+   *The generated standalone binary will be placed in the `dist/` directory.*
