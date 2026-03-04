@@ -86,6 +86,8 @@ def main():
     # init command
     init_parser = subparsers.add_parser("init", help="Initialize a claw workspace in the current directory")
     init_parser.add_argument("-u", "--url", required=True, help="URL or local path to the manifest repository or file")
+    init_parser.add_argument("-m", "--manifest-name", default="default.xml", help="Name of the manifest file in the repository")
+    init_parser.add_argument("-b", "--branch", help="Manifest branch or revision")
 
     # sync command
     sync_parser = subparsers.add_parser("sync", help="Sync the repositories as per the manifest")
@@ -146,10 +148,21 @@ def main():
             if os.path.exists(manifest_repo_dir):
                 print("Updating existing manifest repository...")
                 run_git(["pull"], cwd=manifest_repo_dir)
+                if args.branch:
+                    run_git(["checkout", args.branch], cwd=manifest_repo_dir)
             else:
                 print(f"Cloning manifest repository from {args.url}...")
-                run_git(["clone", args.url, manifest_repo_dir])
+                clone_cmd = ["clone"]
+                if args.branch:
+                    clone_cmd.extend(["--branch", args.branch])
+                clone_cmd.extend([args.url, manifest_repo_dir])
+                run_git(clone_cmd)
             print(f"Manifest repository synced in {manifest_repo_dir}")
+            
+        # Save the manifest name preference for sync
+        with open(os.path.join(claw_dir, "manifest_name"), "w") as f:
+            f.write(args.manifest_name)
+            
         print("\nClaw workspace initialized. Run `claw sync` to fetch projects.")
 
     elif args.command == "sync":
@@ -161,7 +174,15 @@ def main():
             
         # Determine where the manifest is
         local_xml = os.path.join(claw_dir, "manifest.xml")
-        repo_xml = os.path.join(claw_dir, "manifest", "default.xml")
+        
+        # Check for saved manifest name preference
+        manifest_name = "default.xml"
+        manifest_name_file = os.path.join(claw_dir, "manifest_name")
+        if os.path.exists(manifest_name_file):
+            with open(manifest_name_file, "r") as f:
+                manifest_name = f.read().strip()
+                
+        repo_xml = os.path.join(claw_dir, "manifest", manifest_name)
         
         manifest_path = None
         if os.path.exists(local_xml):
@@ -169,7 +190,7 @@ def main():
         elif os.path.exists(repo_xml):
             manifest_path = repo_xml
         else:
-            print("Error: Could not find manifest.xml or manifest/default.xml in .claw/")
+            print(f"Error: Could not find manifest.xml or manifest/{manifest_name} in .claw/")
             sys.exit(1)
             
         projects = parse_manifest(manifest_path)

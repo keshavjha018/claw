@@ -23,26 +23,21 @@ pip install git+https://github.com/keshavjha018/claw.git
 
 This downloads compiling execution directly from GitHub and registers the `claw` executable directly in your system PATH.
 
-### Developer Setup
-If you are modifying the source code of Claw locally, you can install it in "editable" mode:
-1. Clone the repository and navigate into the folder:
-   ```bash
-   git clone https://github.com/keshavjha018/claw.git
-   cd claw
-   ```
-2. Run the editable install command:
-   ```bash
-   pip install -e .
-   ```
 
 ## Usage Guide
 
 Claw uses an XML manifest (usually `default.xml`) to understand your project structure.
 
 ### 1. Initialize a Workspace
-To create a new workspace, navigate to an empty directory and use `claw init`. You can point this to a local XML file or a remote git repository that contains your manifest.
+To create a new workspace, navigate to an empty directory and use `claw init`. You can point this to a local XML file, a raw web link, or a remote Git repository that contains your manifest.
 ```bash
 claw init -u /path/to/my/manifest.xml
+```
+
+**Using Remote Manifest Repositories:**
+If you provide a Git repository URL, by default, it looks for a file named `default.xml` on the default branch. You can override these using the `-m` (manifest) and `-b` (branch) flags:
+```bash
+claw init -u https://github.com/my-org/manifests.git -b dev -m android.xml
 ```
 
 ### 2. Sync Projects
@@ -68,3 +63,15 @@ You can run a Git log specifically tailored to any project path, safely passing 
 ```bash
 claw log path/to/my/module -n 5 --oneline
 ```
+
+## Developer Setup
+If you are modifying the source code of Claw locally, you can install it in "editable" mode:
+1. Clone the repository and navigate into the folder:
+   ```bash
+   git clone https://github.com/keshavjha018/claw.git
+   cd claw
+   ```
+2. Run the editable install command:
+   ```bash
+   pip install -e .
+   ```
