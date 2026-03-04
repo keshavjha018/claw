@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+
+  <remote name="github"
+          fetch="https://github.com/" />
+
+  <default remote="github"
+           revision="main" />
+
+  <!-- Clone googletest but store as third_party/gtest -->
+  <project name="google/googletest"
+           path="third_party/gtest"
+           revision="main" />
+
+  <!-- Clone fmt but checkout dev branch and rename folder -->
+  <project name="fmtlib/fmt"
+           path="libs/fmt-dev"
+           revision="dev" />
+
+  <!-- Clone jsoncpp but checkout master branch and rename -->
+  <project name="open-source-parsers/jsoncpp"
+           path="libs/json-library"
+           revision="master" />
+
+</manifest>

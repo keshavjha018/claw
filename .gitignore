@@ -1,0 +1,6 @@
+__pycache__/
+
+tests/*
+
+!tests/
+!tests/DemoManifest.xml
