@@ -4,7 +4,7 @@ import sys
 import subprocess
 import xml.etree.ElementTree as ET
 import shutil
-import xml.etree.ElementTree as ET
+import urllib.request
 
 def run_git(args, cwd=None, capture_output=False, check=True):
     """Run a git command using subprocess."""
@@ -115,6 +115,11 @@ def main():
         manifest_dest = os.path.join(claw_dir, "manifest.xml")
         manifest_repo_dir = os.path.join(claw_dir, "manifest")
 
+        # Determine if it's an HTTP file link (like a raw xml file or a github blob link)
+        is_http_file = args.url.startswith("http") and (
+            args.url.endswith(".xml") or "/blob/" in args.url or "/raw/" in args.url
+        )
+
         # If it's a local file, copy it directly
         if os.path.isfile(args.url):
             try:
@@ -123,8 +128,21 @@ def main():
             except Exception as e:
                 print(f"Failed to copy manifest: {e}")
                 sys.exit(1)
+        elif is_http_file:
+            print(f"Downloading manifest file from {args.url}...")
+            # Automatically convert GitHub blob URLs to raw file URLs
+            download_url = args.url
+            if "github.com" in download_url and "/blob/" in download_url:
+                download_url = download_url.replace("github.com", "raw.githubusercontent.com").replace("/blob/", "/")
+            
+            try:
+                urllib.request.urlretrieve(download_url, manifest_dest)
+                print(f"Downloaded remote manifest to {manifest_dest}")
+            except Exception as e:
+                print(f"Failed to download remote manifest: {e}")
+                sys.exit(1)
         else:
-            # It's a git URL
+            # It's a git repository URL
             if os.path.exists(manifest_repo_dir):
                 print("Updating existing manifest repository...")
                 run_git(["pull"], cwd=manifest_repo_dir)
