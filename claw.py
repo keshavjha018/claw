@@ -251,6 +251,7 @@ def main():
         full_path = os.path.join(os.getcwd(), args.path)
         if not os.path.exists(os.path.join(full_path, ".git")):
             print(f"Error: No git repository found at '{args.path}'")
+            print(f"(Did you run `claw sync`? Did that module fail to clone?)")
             sys.exit(1)
             
         # Do not capture output, so it uses the user's terminal/pager directly

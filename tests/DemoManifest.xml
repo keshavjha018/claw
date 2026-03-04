@@ -14,8 +14,8 @@
 
   <!-- Clone fmt but checkout dev branch and rename folder -->
   <project name="fmtlib/fmt"
-           path="libs/fmt-dev"
-           revision="dev" />
+           path="libs/fmt-master"
+           revision="master" />
 
   <!-- Clone jsoncpp but checkout master branch and rename -->
   <project name="open-source-parsers/jsoncpp"
