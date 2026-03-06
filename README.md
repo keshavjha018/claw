@@ -29,10 +29,12 @@ When a new version is pushed to GitHub, users can update their local installatio
 pip install --upgrade git+https://github.com/keshavjha018/claw.git
 ```
 
+> **Note:** If you do not have Python installed, you can download the standalone `claw.exe` from the [GitHub Releases](https://github.com/keshavjha018/claw/releases) page and add it to your system `PATH`. No additional dependencies are required.
+
 
 ## Usage Guide
 
-Claw uses an XML manifest (usually `default.xml`) to understand your project structure.
+Claw uses an XML manifest to understand your project structure.
 
 ### 1. Initialize a Workspace
 To create a new workspace, navigate to an empty directory and use `claw init`. You can point this to a local XML file, a raw web link, or a remote Git repository that contains your manifest.

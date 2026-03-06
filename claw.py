@@ -240,7 +240,12 @@ def main():
             sys.exit(1)
             
         local_xml = os.path.join(claw_dir, "manifest.xml")
-        repo_xml = os.path.join(claw_dir, "manifest", "default.xml")
+        manifest_name = "default.xml"
+        manifest_name_file = os.path.join(claw_dir, "manifest_name")
+        if os.path.exists(manifest_name_file):
+            with open(manifest_name_file, "r") as f:
+                manifest_name = f.read().strip()
+        repo_xml = os.path.join(claw_dir, "manifest", manifest_name)
         manifest_path = local_xml if os.path.exists(local_xml) else repo_xml
         
         projects = parse_manifest(manifest_path)
@@ -266,7 +271,12 @@ def main():
             sys.exit(1)
             
         local_xml = os.path.join(claw_dir, "manifest.xml")
-        repo_xml = os.path.join(claw_dir, "manifest", "default.xml")
+        manifest_name = "default.xml"
+        manifest_name_file = os.path.join(claw_dir, "manifest_name")
+        if os.path.exists(manifest_name_file):
+            with open(manifest_name_file, "r") as f:
+                manifest_name = f.read().strip()
+        repo_xml = os.path.join(claw_dir, "manifest", manifest_name)
         manifest_path = local_xml if os.path.exists(local_xml) else repo_xml
         
         projects = parse_manifest(manifest_path)
