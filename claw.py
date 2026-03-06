@@ -5,6 +5,12 @@ import subprocess
 import xml.etree.ElementTree as ET
 import shutil
 import urllib.request
+from importlib.metadata import version, PackageNotFoundError
+
+try:
+    __version__ = version("claw-tool")
+except PackageNotFoundError:
+    __version__ = "dev"
 
 def run_git(args, cwd=None, capture_output=False, check=True):
     """Run a git command using subprocess."""
@@ -79,7 +85,7 @@ def parse_manifest(manifest_path):
 
 def main():
     parser = argparse.ArgumentParser(description="Claw: A minimal repo-like tool optimized for Windows.")
-    parser.add_argument("-v", "--version", action="version", version="0.1.0")
+    parser.add_argument("-v", "--version", action="version", version=__version__)
     
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
