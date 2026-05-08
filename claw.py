@@ -5,12 +5,19 @@ import subprocess
 import xml.etree.ElementTree as ET
 import shutil
 import urllib.request
+import re
 from importlib.metadata import version, PackageNotFoundError
 
 try:
     __version__ = version("claw-tool")
 except PackageNotFoundError:
     __version__ = "dev"
+
+def is_sha(rev):
+    """Check if a revision is a full SHA-1 hash."""
+    if not rev:
+        return False
+    return re.match(r'^[0-9a-f]{40}$', rev) is not None
 
 def run_git(args, cwd=None, capture_output=False, check=True):
     """Run a git command using subprocess."""
@@ -64,6 +71,7 @@ def parse_manifest(manifest_path):
         p_path = project.get('path', p_name) # Default path to name if path not specified
         p_remote = project.get('remote', default_remote)
         p_revision = project.get('revision', default_revision)
+        p_upstream = project.get('upstream')
         
         # Calculate full remote URL
         if not p_remote or p_remote not in remotes:
@@ -77,6 +85,7 @@ def parse_manifest(manifest_path):
             'name': p_name,
             'path': p_path,
             'revision': p_revision,
+            'upstream': p_upstream,
             'remote': p_remote,
             'remote_url': remote_url
         })
@@ -158,11 +167,16 @@ def main():
                     run_git(["checkout", args.branch], cwd=manifest_repo_dir)
             else:
                 print(f"Cloning manifest repository from {args.url}...")
-                clone_cmd = ["clone"]
-                if args.branch:
-                    clone_cmd.extend(["--branch", args.branch])
-                clone_cmd.extend([args.url, manifest_repo_dir])
-                run_git(clone_cmd)
+                if args.branch and is_sha(args.branch):
+                    # Cannot use --branch with a SHA, so clone default and checkout
+                    run_git(["clone", args.url, manifest_repo_dir])
+                    run_git(["checkout", args.branch], cwd=manifest_repo_dir)
+                else:
+                    clone_cmd = ["clone"]
+                    if args.branch:
+                        clone_cmd.extend(["--branch", args.branch])
+                    clone_cmd.extend([args.url, manifest_repo_dir])
+                    run_git(clone_cmd)
             print(f"Manifest repository synced in {manifest_repo_dir}")
             
         # Save the manifest name preference for sync
@@ -226,13 +240,30 @@ def main():
                     print(f"Warning: Issue checking out/pulling {rev} for {p['name']}.")
             else:
                 # New project -> clone
-                print(f"Cloning from {url} to {path} (branch: {rev})...")
+                upstream = p.get('upstream')
+                if upstream:
+                    print(f"Cloning from {url} to {path} (branch: {upstream}, revision: {rev})...")
+                else:
+                    print(f"Cloning from {url} to {path} (revision: {rev})...")
+                
                 os.makedirs(os.path.dirname(full_path) or ".", exist_ok=True)
                 try:
-                    # shallow clone or branch clone
-                    run_git(["clone", "--branch", rev, url, path])
-                except Exception as e:
+                    if upstream:
+                        # Clone upstream branch and then checkout specific revision
+                        run_git(["clone", "--branch", upstream, url, path])
+                        run_git(["checkout", rev], cwd=full_path)
+                    elif is_sha(rev):
+                        # revision is a SHA, clone default and then checkout
+                        run_git(["clone", url, path])
+                        run_git(["checkout", rev], cwd=full_path)
+                    else:
+                        # revision is likely a branch/tag
+                        run_git(["clone", "--branch", rev, url, path])
+                except Exception:
                     print(f"Failed to clone {p['name']}. Continuing...")
+                    # Cleanup failed clone directory if it was created but not a valid git repo
+                    if os.path.exists(full_path) and not os.path.exists(os.path.join(full_path, ".git")):
+                        shutil.rmtree(full_path, ignore_errors=True)
     elif args.command == "branch":
         claw_dir = os.path.join(os.getcwd(), ".claw")
         if not os.path.exists(claw_dir):
